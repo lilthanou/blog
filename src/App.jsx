@@ -1,60 +1,108 @@
 import "./App.css";
 import { useState, useEffect, React } from "react";
-import { getArticles } from './Fire';
-import { Spin, Card } from 'antd';
+import { getArticles, deleteArticle } from "./Fire";
+import { Spin, Input } from "antd";
 import MyButton from "./components/AddButton";
 import ArticleModal from "./components/ArticleModal";
+import CommentModal from "./components/CommentModal";
+import ArticleCard from "./components/ArticleCard";
 
 function App() {
   const [isArticleModalVisible, setIsArticleModalVisible] = useState(false);
+  const [isCommentModalVisible, setIsCommentModalVisible] = useState(false);
   const [articles, setArticles] = useState([]);
+  const [selectedArticle, setSelectedArticle] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    getArticles(posts => {
-      setArticles(posts)
-      setLoading(false)
-      console.log(posts);
-    })
-  }, [])
+    getArticles((posts) => {
+      setArticles(posts);
+      setLoading(false);
+    });
+  }, []);
 
   return (
     <>
       <div className="root">
-        <div className="top">
-          <div className="box">C</div>
-          <div className="box">O</div>
-          <div className="box">D</div>
-          <div className="box">E</div>
-        </div>
+        <header className="header">
+          <h1>DECODE</h1>
 
-        <div className="title">
-          <h1>Bienvenue sur mon blog</h1>
-        </div>
+          <div>
+            <input
+              type="text"
+              placeholder="Rechercher..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="search-bar"
+            />
+          </div>
+        </header>
 
-        <MyButton
-          onClick={() => setIsArticleModalVisible(true)}
-          isArticleModalVisible={() => isArticleModalVisible}
-          content={"Ajouter un article"}
-        ></MyButton>
-        {isArticleModalVisible && <ArticleModal
-          isArticleModalVisible={isArticleModalVisible}
-          handleOk={() => setIsArticleModalVisible(false)}
-          handleCancel={() => setIsArticleModalVisible(false)}
-        />}
-        {/* Si 'loading' est à 'true', affiche un icône de chargement */} 
-      {loading ? ( <Spin size="large" /> ) : (
-        articles.map(article => (
-          <Card
-            key={article.id}
-            title={article.title}
-            bordered={false}
-            style={{ width: 300 }}
-          >
-            <p>{article.content}</p>
-          </Card>
-        ))
-      )}
+        <main>
+          <MyButton
+            onClick={() => {
+              setIsArticleModalVisible(true), setSelectedArticle(null);
+            }}
+            isArticleModalVisible={() => isArticleModalVisible}
+            content={"Ajouter un article"}
+            className="add-button"
+          ></MyButton>
+
+          {isArticleModalVisible && (
+            <ArticleModal
+              selectedArticle={selectedArticle}
+              isArticleModalVisible={isArticleModalVisible}
+              handleSubmit={() => setIsArticleModalVisible(false)}
+              handleClose={() => setIsArticleModalVisible(false)}
+            />
+          )}
+
+          {isCommentModalVisible && (
+            <CommentModal
+              selectedArticle={selectedArticle}
+              isCommentModalVisible={isCommentModalVisible}
+              handleSubmit={() => setIsCommentModalVisible(false)}
+              handleClose={() => setIsCommentModalVisible(false)}
+            />
+          )}
+
+          <div className="card-container">
+            {loading ? (
+              <Spin size="large" />
+            ) : (
+              articles
+                .filter(
+                  (article) =>
+                    article.title
+                      .toLowerCase()
+                      .includes(search.toLowerCase()) ||
+                    article.content.toLowerCase().includes(search.toLowerCase())
+                )
+                .map((article) => (
+                  <ArticleCard
+                    key={article.id}
+                    title={article.title}
+                    content={article.content}
+                    createdAt={article.createdAt}
+                    style={{ width: 300 }}
+                    handleEdit={() => {
+                      setIsArticleModalVisible(true);
+                      setSelectedArticle(article);
+                    }}
+                    handleDelete={() => {
+                      setSelectedArticle(article), deleteArticle(article);
+                    }}
+                    handleComment={() => {
+                      setSelectedArticle(article);
+                      setIsCommentModalVisible(true);
+                    }}
+                    className="card"
+                  ></ArticleCard>
+                ))
+            )}
+          </div>
+        </main>
       </div>
     </>
   );

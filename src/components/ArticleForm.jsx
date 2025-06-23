@@ -25,6 +25,8 @@ export default function MyForm({ title, content, setTitle, setContent }) {
         name="title"
         onChange={handleChange}
         value={title}
+        className="title-input"
+        required
       />
       <label htmlFor="content">Contenu</label>
       <Input.TextArea
@@ -33,6 +35,9 @@ export default function MyForm({ title, content, setTitle, setContent }) {
         name="content"
         onChange={handleChange}
         value={content}
+        className="content-input"
+        autoSize={{ minRows: 3, maxRows: 7 }}
+        required
       />
     </form>
   )
